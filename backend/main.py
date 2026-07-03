@@ -32,6 +32,11 @@ def get_current_employee(token: str = Depends(oauth2_scheme), db: Session = Depe
         raise HTTPException(status_code=401, detail="Employee not found")
     return employee
 
+def require_admin(current_employee: models.Employee = Depends(get_current_employee)):
+    if current_employee.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_employee
+
 @app.get("/")
 def read_root():
     return {"message": "HRMS Backend is running"}
@@ -182,3 +187,114 @@ def get_today_attendance(
         .filter(models.Attendance.employee_id == current_employee.id, models.Attendance.date == today)
         .first()
     )
+
+@app.get("/admin/leaves", response_model=list[schemas.LeaveWithEmployee])
+def get_all_leaves(
+    admin: models.Employee = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    leaves = db.query(models.Leave).order_by(models.Leave.start_date.desc()).all()
+    return [
+        schemas.LeaveWithEmployee(
+            id=l.id,
+            leave_type=l.leave_type,
+            start_date=l.start_date,
+            end_date=l.end_date,
+            reason=l.reason,
+            status=l.status.value if hasattr(l.status, "value") else l.status,
+            employee_id=l.employee_id,
+            employee_name=f"{l.employee.first_name} {l.employee.last_name}",
+        )
+        for l in leaves
+    ]
+
+@app.put("/admin/leaves/{leave_id}", response_model=schemas.LeaveResponse)
+def update_leave_status(
+    leave_id: int,
+    update: schemas.LeaveStatusUpdate,
+    admin: models.Employee = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    if update.status not in ["approved", "rejected"]:
+        raise HTTPException(status_code=400, detail="Status must be 'approved' or 'rejected'")
+
+    leave = db.query(models.Leave).filter(models.Leave.id == leave_id).first()
+    if not leave:
+        raise HTTPException(status_code=404, detail="Leave request not found")
+
+    leave.status = update.status
+    db.commit()
+    db.refresh(leave)
+    return leave
+
+@app.delete("/admin/employees/{employee_id}")
+def delete_employee(
+    employee_id: int,
+    admin: models.Employee = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    employee = db.query(models.Employee).filter(models.Employee.id == employee_id).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    if employee.id == admin.id:
+        raise HTTPException(status_code=400, detail="You cannot delete your own account")
+
+    db.delete(employee)
+    db.commit()
+    return {"message": "Employee deleted successfully"}
+
+@app.post("/admin/announcements", response_model=schemas.AnnouncementResponse)
+def create_announcement(
+    announcement: schemas.AnnouncementCreate,
+    admin: models.Employee = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    new_announcement = models.Announcement(
+        title=announcement.title,
+        message=announcement.message,
+        posted_by=admin.id,
+    )
+    db.add(new_announcement)
+    db.commit()
+    db.refresh(new_announcement)
+    return schemas.AnnouncementResponse(
+        id=new_announcement.id,
+        title=new_announcement.title,
+        message=new_announcement.message,
+        posted_by_name=f"{admin.first_name} {admin.last_name}",
+        created_at=new_announcement.created_at,
+    )
+
+@app.get("/announcements", response_model=list[schemas.AnnouncementResponse])
+def get_announcements(
+    current_employee: models.Employee = Depends(get_current_employee),
+    db: Session = Depends(get_db),
+):
+    announcements = (
+        db.query(models.Announcement)
+        .order_by(models.Announcement.created_at.desc())
+        .all()
+    )
+    return [
+        schemas.AnnouncementResponse(
+            id=a.id,
+            title=a.title,
+            message=a.message,
+            posted_by_name=f"{a.posted_by_employee.first_name} {a.posted_by_employee.last_name}",
+            created_at=a.created_at,
+        )
+        for a in announcements
+    ]
+
+@app.delete("/admin/announcements/{announcement_id}")
+def delete_announcement(
+    announcement_id: int,
+    admin: models.Employee = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    announcement = db.query(models.Announcement).filter(models.Announcement.id == announcement_id).first()
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    db.delete(announcement)
+    db.commit()
+    return {"message": "Announcement deleted"}

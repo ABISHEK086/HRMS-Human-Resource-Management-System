@@ -113,3 +113,91 @@ export async function getTodayAttendance(token) {
   if (!res.ok) throw new Error("Failed to fetch today's attendance");
   return res.json();
 }
+
+export async function getAllEmployees(token) {
+  const res = await fetch(`${BASE_URL}/employees`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch employees");
+  return res.json();
+}
+
+export async function getEmployeeById(token, id) {
+  const res = await fetch(`${BASE_URL}/employees/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch employee");
+  return res.json();
+}
+
+export async function getAllLeavesAdmin(token) {
+  const res = await fetch(`${BASE_URL}/admin/leaves`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch leave requests");
+  return res.json();
+}
+
+export async function updateLeaveStatus(token, leaveId, status) {
+  const res = await fetch(`${BASE_URL}/admin/leaves/${leaveId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Failed to update leave status");
+  }
+  return res.json();
+}
+
+export async function deleteEmployee(token, employeeId) {
+  const res = await fetch(`${BASE_URL}/admin/employees/${employeeId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Failed to delete employee");
+  }
+  return res.json();
+}
+
+export async function getAnnouncements(token) {
+  const res = await fetch(`${BASE_URL}/announcements`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch announcements");
+  return res.json();
+}
+
+export async function createAnnouncement(token, data) {
+  const res = await fetch(`${BASE_URL}/admin/announcements`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Failed to post announcement");
+  }
+  return res.json();
+}
+
+export async function deleteAnnouncement(token, id) {
+  const res = await fetch(`${BASE_URL}/admin/announcements/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Failed to delete announcement");
+  }
+  return res.json();
+}

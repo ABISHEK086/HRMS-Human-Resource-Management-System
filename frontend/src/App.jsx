@@ -5,6 +5,8 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import Profile from "./pages/Profile/Profile";
 import Leave from "./pages/Leave/Leave";
 import Attendance from "./pages/Attendance/Attendance";
+import Admin from "./pages/Admin/Admin";
+import Inbox from "./pages/Inbox/Inbox";
 
 function App() {
   return (
@@ -15,7 +17,9 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/leave" element={<Leave />} />
+        <Route path="/inbox" element={<Inbox />} />
         <Route path="/attendance" element={<Attendance />} />
       </Routes>
     </BrowserRouter>

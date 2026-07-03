@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum, Text
 from sqlalchemy.orm import relationship
 from database import Base
 import enum
+from datetime import datetime as dt
 
 class LeaveStatus(str, enum.Enum):
     pending = "pending"
@@ -20,9 +21,11 @@ class Employee(Base):
     department = Column(String(50))
     position = Column(String(50))
     join_date = Column(Date, nullable=True)
+    role = Column(String(20), nullable=False, default="employee")
 
     leaves = relationship("Leave", back_populates="employee")
     attendance_records = relationship("Attendance", back_populates="employee")
+    announcements = relationship("Announcement", back_populates="posted_by_employee")
 
 
 class Leave(Base):
@@ -49,3 +52,14 @@ class Attendance(Base):
     check_out = Column(DateTime, nullable=True)
 
     employee = relationship("Employee", back_populates="attendance_records")
+
+class Announcement(Base):
+    __tablename__ = "announcements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(150), nullable=False)
+    message = Column(Text, nullable=False)
+    posted_by = Column(Integer, ForeignKey("employees.id"), nullable=False)
+    created_at = Column(DateTime, default=dt.utcnow, nullable=False)
+
+    posted_by_employee = relationship("Employee", back_populates="announcements")

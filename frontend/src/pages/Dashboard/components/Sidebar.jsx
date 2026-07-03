@@ -1,21 +1,33 @@
+import { useEffect, useState } from "react";
 import { Layout, Menu } from "antd";
-import { UserOutlined, DollarOutlined, InboxOutlined, ApartmentOutlined, CalendarOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import { UserOutlined, DollarOutlined, InboxOutlined, ApartmentOutlined, CalendarOutlined, ClockCircleOutlined, SafetyOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const { Sider } = Layout;
 
-const menuItems = [
-  { key: "/dashboard", icon: <UserOutlined />, label: "Me" },
-  { key: "/attendance", icon: <ClockCircleOutlined />, label: "Attendance" },
-  { key: "/leave", icon: <CalendarOutlined />, label: "Leave" },
-  { key: "/finance", icon: <DollarOutlined />, label: "Finance" },
-  { key: "/inbox", icon: <InboxOutlined />, label: "Inbox" },
-  { key: "/organization", icon: <ApartmentOutlined />, label: "Organization" },
-];
-
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("employee");
+    if (stored) {
+      setRole(JSON.parse(stored).role);
+    }
+  }, []);
+
+  const menuItems = [
+    { key: "/dashboard", icon: <UserOutlined />, label: "Me" },
+    { key: "/attendance", icon: <ClockCircleOutlined />, label: "Attendance" },
+    { key: "/leave", icon: <CalendarOutlined />, label: "Leave" },
+    { key: "/finance", icon: <DollarOutlined />, label: "Finance" },
+    { key: "/inbox", icon: <InboxOutlined />, label: "Inbox" },
+    { key: "/organization", icon: <ApartmentOutlined />, label: "Organization" },
+    ...(role === "admin"
+      ? [{ key: "/admin", icon: <SafetyOutlined />, label: "Admin Panel" }]
+      : []),
+  ];
 
   return (
     <Sider width={220} className="bg-white shadow-sm" theme="light">
