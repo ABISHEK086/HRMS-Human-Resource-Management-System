@@ -9,7 +9,7 @@ class LeaveStatus(str, enum.Enum):
     approved = "approved"
     rejected = "rejected"  
 
-class Employee(Base):
+class Employee(Base): 
     __tablename__ = "employees"
 
     id = Column(Integer, primary_key=True, index=True)
