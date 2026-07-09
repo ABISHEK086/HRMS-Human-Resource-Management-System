@@ -7,7 +7,7 @@ from datetime import datetime as dt
 class LeaveStatus(str, enum.Enum):
     pending = "pending"
     approved = "approved"
-    rejected = "rejected" 
+    rejected = "rejected"  
 
 class Employee(Base):
     __tablename__ = "employees"
