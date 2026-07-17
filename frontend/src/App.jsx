@@ -4,7 +4,7 @@ import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Profile from "./pages/Profile/Profile";
 import Leave from "./pages/Leave/Leave";
-import Attendance from "./pages/Attendance/Attendance";
+import Attendance from "./pages/Attendance/Attendance"; 
 import Admin from "./pages/Admin/Admin";
 import Inbox from "./pages/Inbox/Inbox";
 
